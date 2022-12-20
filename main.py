@@ -1,39 +1,29 @@
-import os
-import os.path
-import csv
-from nltk.stem import WordNetLemmatizer
-import pandas as pd
+from txt_to_csv_third import Comment, get_dataset
+from matplotlib import pyplot as plt
 import numpy as np
-import nltk
+from pymystem3 import Mystem #лемматизируем
+import pymorphy2 #АНАЛиз на часть речи
+import pandas as pd
+import os 
 import string
-import spacy
 import re
-from nltk.corpus import stopwords
-from txt_to_csv_third import Comment, get_dataset 
 
-
-nltk.download('omw-1.4')
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('averaged_perceptron_tagger_ru')
-nltk.download('punkt')
 
 def GetDataset():
     path = os.path.abspath("../application_programming_first_lab_and_dataset/dataset")
     return path
 
 def GetDataframe(dataset_path: str) -> pd.DataFrame:
-
+    
     dataset = get_dataset(dataset_path)
-
+    
     texts = list()
-
+    
     marks = list()
 
     for comment in dataset:
-        texts.append(comment.comment)
-        marks.append(comment.mark)
-
+        texts.append(str(comment.comment))
+        marks.append(str(comment.mark))
     dataframe = pd.DataFrame({"mark": marks, "text_of_comment":texts})
     return dataframe
 
@@ -61,64 +51,100 @@ def CountWords(df: pd.DataFrame, column: str) -> list:
     for i in range(0, len(df.index)):
         text = df.iloc[i]
         text = text[column]
-        #text = text.replace("\n", " ")
-        #text = text.replace(",", "").replace(
-        #    ".", "").replace("?", "").replace("!", "").replace("'", "")
-        #text = text.lower()
-
         words = text.split()
-
-        for i in range(0,len(words)):
-            words[i] = words[i].strip()
-            words[i] = re.sub(r'[@#$%^&*()<>?.,/|\\`~]', '',words[i])
-            words[i] = words[i].lower()
-            print(words)
-        words.sort()
         count_words.append(len(words))
     return count_words
 
-if __name__ == '__main__':
+def ClearWords(words:str) -> str:
+    words_res = list()
+    for i in range(0,len(words)):
+        words[i] = words[i].strip()
+        words[i] = words[i].lower()
+        words_res.append(re.sub("[^абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ]", "", words[i]))
 
-    print("-"*999)
+    return words_res
 
+def pos(word, morth=pymorphy2.MorphAnalyzer()):
+    "Return a likely part of speech for the *word*."""
+    return morth.parse(word)[0].tag.POS
+
+def lemmatize(df: pd.DataFrame, column: str):
+    text_nomalized = str()
+    #for i in range(0, len(df.index)):
+    for i in range(0, 10):
+
+        text = df.iloc[i]
+        text = text[column]
+        words = text.split()
+
+        words = ClearWords(words)
+
+        for i in range(0,len(words)):
+            text_nomalized += words[i]
+            text_nomalized += ' '
+
+    m = Mystem()
+    lemmas = m.lemmatize(text_nomalized)
+
+    functors_pos = {'INTJ', 'PRCL', 'CONJ', 'PREP'}  # function words
+
+    lemmas = [lemma for lemma in lemmas if pos(lemma) not in functors_pos]
+
+    lemmas = ClearWords(lemmas)
+
+    lemmas_res = [lemma for lemma in lemmas if not lemma == '' ]
+
+    print(lemmas_res)
+
+    return lemmas_res
+
+def Top10Lemmas(lemmatized: str) -> str:
+
+
+ if __name__ == '__main__':
+
+    print("-"*99)
+    
     columns = ['mark', 'text_of_comment', 'num_of_words']
 
     dataset_path = GetDataset()
     dataframe = GetDataframe(dataset_path)
+
     num_of_words = CountWords(dataframe, 'text_of_comment')
 
     dataframe[columns[2]] = pd.Series(num_of_words)
 
-    dataframe[columns[2]] = pd.Series(count_word)
+    dataframe[columns[2]] = pd.Series(num_of_words)
     print(dataframe)
 
-    stat = statistical_information(dataframe, columns[2])
+    stat = StatInfo(dataframe, columns[2])
     print(stat)
 
-    filtered_reviews_df = filtered_dataframe_word(
+    df_words_filtered = FilterWords(
         dataframe, columns[2], 100)
-    print(filtered_reviews_df)
 
-    #reviews_good_df = filtered_dataframe_class(
-    #    dataframe, column_name[0], 'good')
-    #reviews_bad_df = filtered_dataframe_class(
-    #    dataframe, column_name[0], 'bad')
+    print(df_words_filtered)
 
-    print(reviews_bad_df)
-    print(reviews_good_df)
+    df_1 = FilterClass(
+        dataframe, columns[0], '1')
 
-    stat_good = statistical_information(reviews_good_df, column_name[2])
-    print('\nДля положительных отзывов:\n')
-    print('Минимальное кол-во слов:', stat_good['min'])
-    print('Максимальное кол-во слов:', stat_good['max'])
-    print('Среднее кол-во слов:', stat_good['mean'])
+    print(df_1)
 
-    stat_bad = statistical_information(reviews_bad_df, column_name[2])
-    print('\nДля отрицательных отзывов:\n')
-    print('Минимальное кол-во слов:', stat_bad['min'])
-    print('Максимальное кол-во слов:', stat_bad['max'])
-    print('Среднее кол-во слов:', stat_bad['mean'])
+    stat_1 = StatInfo(df_1, columns[2])
+    print('\nДля оценки 1:\n')
+    print('Минимальное кол-во слов:', stat_1['min'])
+    print('Максимальное кол-во слов:', stat_1['max'])
+    print('Среднее кол-во слов:', stat_1['mean'])
 
-    #histogram(reviews_df, 'good', column_name[1])
+    lemmatized = lemmatize(dataframe, columns[1])
 
-    print("-"*999)
+    top10lemmas = Top10Lemmas(lemmatized)
+
+    fig = plt.figure(figsize=(20,10))
+    ax = fig.add_subplot()
+
+    ax.bar(list(word_dict.keys()), word_dict.values(), color='r')
+
+    plt.show()
+
+    print("-"*99)
