@@ -94,7 +94,7 @@ def get_dataset(path: str) -> Comment:
 
             try:
                 file = open(path_to_file, 'r', encoding='utf-8')
-                print(f'{folder_num} : {(file_num):04}')
+                #print(f'{folder_num} : {(file_num):04}')
             except Exception as e:
                 print(e.args)
 

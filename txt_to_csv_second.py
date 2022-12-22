@@ -47,7 +47,7 @@ def copy_dataset(path_to_dataset: str) -> str:
         for file_num in range(0, (num_of_files - 1)):
             shutil.copy(folder_path+f"/{(file_num+1):04}.txt", nd_path) #rewrite
             os.rename(f"./new_dataset/{(file_num+1):04}.txt", f"./new_dataset/{folder_num}_{(file_num+1):04}.txt") #rename
-
+    
     return nd_path
 
 

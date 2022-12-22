@@ -3,7 +3,7 @@ import os
 
 
 def write_as_csv(paths_to_files: str) -> None:
-
+    
     """Writes path to files from dataset in CSV file
     """
 
@@ -27,7 +27,7 @@ def get_paths_to_files(path_to_dataset: str) -> str:
     paths_to_files = list()
 
     for folder_num in range(1, 6):
-
+        
         folder_path = path_to_dataset+'/'+str(folder_num)
         num_of_files = sum(os.path.isfile(os.path.join(folder_path, f))
                            for f in os.listdir(folder_path)) + 1

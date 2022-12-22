@@ -3,9 +3,11 @@ import os
 
 def get_next(mark: int, id: int) -> str:
     """Returns next filename
+
     Args:
         mark (int): Class ID
         id (int): File ID
+        
     Returns:
         str: Path to propper file
     """

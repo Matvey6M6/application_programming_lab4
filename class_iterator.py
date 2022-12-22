@@ -21,7 +21,7 @@ class Iterator:
             return tmp
         else:
             raise StopIteration
-
+        
 
 if __name__ == "__main__":
     mark = 4
